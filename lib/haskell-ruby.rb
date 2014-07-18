@@ -1,11 +1,23 @@
 require 'json'
 require 'tempfile'
 
-class Haskell
+def haskell(source)
+    Haskell.load(source)
+end
+
+module Haskell
+
+    def method_missing(name, *args, &block)
+        if block_given?
+            Haskell.async(name, *args, &block)
+        else
+            Haskell.call(name, *args)
+        end
+    end
 
     class << self
 
-        @@temp = {}
+    @@haskell_file_cache = {}
 
         # TODO module support
         # TODO flexible whitespace
@@ -28,10 +40,12 @@ class Haskell
         end
 
         def file(base='main')
-            @@temp[base] = Tempfile.new([base, '.hs']) unless @@temp[base]
-            @@temp[base]
+            @@haskell_file_cache[base] = Tempfile.new([base, '.hs']) unless @@haskell_file_cache[base]
+            @@haskell_file_cache[base]
         end
+
     end
 
     private_class_method :file
 end
+

@@ -1,47 +1,51 @@
 require('haskell-ruby')
 
-def fib(n)
-    res = Haskell.call(:fib, n)
-    puts "Fib(#{n}) = #{res.empty? ? '[too big]' : res}"
-end
+class Fibonacci
+    include Haskell
 
-def usage!
-    puts <<-EOS
-        Usage: 
-        fibonacci.rb [n]    |   Print the nth fibonacci number
-        fibonacci.rb        |   Start a fibonacci number REPL
-    EOS
-    exit 1
-end
-
-def repl
-    loop do
-        print "λ "
-        input = gets
-        if input.nil? || input.chomp!.empty?
-            puts "Bye!"
-            exit 0
-        end
-        fib input.to_i
+    def pretty_print_fib(n)
+        res = fib n
+        puts "Fib(#{n}) = #{res.empty? ? '[too big]' : res}"
     end
-end
 
-def main
-    case ARGV.length
-    when 0
-        repl
-    when 1
-        begin
-            fib Integer(ARGV.first)
-        rescue ArgumentError
+    def usage!
+        puts <<-EOS
+            Usage: 
+            fibonacci.rb [n]    |   Print the nth fibonacci number
+            fibonacci.rb        |   Start a fibonacci number REPL
+        EOS
+        exit 1
+    end
+
+    def repl
+        loop do
+            print "λ "
+            input = gets
+            if input.nil? || input.chomp!.empty?
+                puts "Bye!"
+                exit 0
+            end
+            pretty_print_fib input.to_i
+        end
+    end
+
+    def main
+        case ARGV.length
+        when 0
+            repl
+        when 1
+            begin
+                pretty_print_fib Integer(ARGV.first)
+            rescue ArgumentError
+                usage!
+            end
+        else
             usage!
         end
-    else
-        usage!
     end
 end
 
-Haskell.load """
+haskell """
 {-# OPTIONS_GHC -fno-warn-missing-methods #-}
 data Matrix = Matrix Integer Integer Integer Integer
 instance Num Matrix where
@@ -54,4 +58,5 @@ fib n | n <= 0      = 0
       where extract (Matrix ul _ _ _) = ul
 """
 
-main
+
+Fibonacci.new.main
