@@ -3,14 +3,19 @@ require('haskell-ruby')
 class Fibonacci
     include Haskell
 
-    def pretty_print_fib(n)
-        res = fib n
-        puts "Fib(#{n}) = #{res.empty? ? '[too big]' : res}"
+    def pretty_print(n, res)
+        res.chomp!
+        if res.length == 1000
+            puts "Fib(#{n}) = ...#{res}"
+            puts "[Truncated to last thousand digits]"
+        else
+            puts "Fib(#{n}) = #{res}"
+        end
     end
 
     def usage!
         puts <<-EOS
-            Usage: 
+            Usage:
             fibonacci.rb [n]    |   Print the nth fibonacci number
             fibonacci.rb        |   Start a fibonacci number REPL
         EOS
@@ -25,7 +30,18 @@ class Fibonacci
                 puts "Bye!"
                 exit 0
             end
-            pretty_print_fib input.to_i
+
+            n, cmd = input.split(' ')
+            n = n.to_i
+            if cmd == "async"
+                fibSummary(n) do |res|
+                    puts
+                    pretty_print n, res
+                    print "λ "
+                end
+            else
+                pretty_print n, fibSummary(n)
+            end
         end
     end
 
@@ -35,7 +51,8 @@ class Fibonacci
             repl
         when 1
             begin
-                pretty_print_fib Integer(ARGV.first)
+                n = Integer(ARGV.first)
+                pretty_print n, fib(n)
             rescue ArgumentError
                 usage!
             end
@@ -56,6 +73,11 @@ fib n | n <= 0      = 0
       | n == 1      = 1
       | otherwise   = extract $ (Matrix 1 1 1 0)^(n - 1)
       where extract (Matrix ul _ _ _) = ul
+
+-- Stick to the last few digits to avoid crashing my poor shell
+fibSummary :: Integer -> Integer
+fibSummary n = (fib n) `mod` (10^1000)
+
 """
 
 
