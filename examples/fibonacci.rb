@@ -77,8 +77,6 @@ fib n | n <= 0      = 0
 -- Stick to the last few digits to avoid crashing my poor shell
 fibSummary :: Integer -> Integer
 fibSummary n = (fib n) `mod` (10^1000)
-
 """
-
 
 Fibonacci.new.main
